@@ -1,0 +1,27 @@
+!pip install google-generativeai --quiet
+import os
+import google.generativeai as genai
+
+# set up API key
+GOOGLE_API_KEY="AIzaSyAk"
+genai.configure(api_key=GOOGLE_API_KEY)
+
+# STEP 2 : setup gemini model
+model = genai.GenerativeModel("gemini-flash-latest")
+chat = model.start_chat()
+
+# STEP 3 : take user input
+user_input = input("Please describe your health symptoms: ")
+
+# STEP 4: User gemini to analyza and respond
+rsponse = chat.send_message(f"""The patient says: {user_input}
+1. Is this serious?
+2. Severity (Low/Medium/High)
+3. Possible causes?
+4. What should they do next?
+
+Keep answer simple.
+""")
+
+print("AI advice, not for medical legal purpose: ")
+print(rsponse.text)
