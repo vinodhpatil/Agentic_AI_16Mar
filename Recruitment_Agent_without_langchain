@@ -1,0 +1,98 @@
+#step1- install all required packages
+# langchain - core framework
+# langchain-google-genai - integrate with gemini models
+# langchain community - doc loaders, utilities
+# python-doenv - load env variables
+# pypdf and doc2txt - read pdf and word
+# langchain-text-splitters - split text into chunks
+# langchain-classic -LLM chain
+# langchain-core - prompt template
+
+!pip install -q python-dotenv pypdf
+!pip install -q docx2txt
+
+#Step2 - import libraries
+# import as - interact with env variables
+# files - upload files
+# userdata - access secrets stored in colabs
+
+#implementing without lanchain libraries
+
+import os
+import google.generativeai as genai
+from google.colab import files
+from pypdf import PdfReader
+import docx2txt
+from google.colab import userdata
+
+# Configure API key
+genai.configure(api_key=userdata.get("GOOGLE_API_KEY"))
+
+# Discover available models
+available_models = []
+for m in genai.list_models():
+    if "generateContent" in m.supported_generation_methods:
+        available_models.append(m.name)
+
+# Select first available model
+if not available_models:
+    raise Exception("No compatible Gemini models available for this API key")
+
+model_name = available_models[0]
+
+# Gemini model
+model = genai.GenerativeModel(model_name)
+
+# Upload resume
+print("Upload resume (PDF/DOCX/TXT):")
+uploaded = files.upload()
+
+resume_path = list(uploaded.keys())[0]
+
+# Extract text
+def extract_text(file_path):
+    if file_path.endswith(".pdf"):
+        reader = PdfReader(file_path)
+        return " ".join([page.extract_text() or "" for page in reader.pages])
+
+    elif file_path.endswith(".docx"):
+        return docx2txt.process(file_path)
+
+    elif file_path.endswith(".txt"):
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+    else:
+        raise ValueError("Unsupported file format")
+
+resume_text = extract_text(resume_path)
+
+if not resume_text.strip():
+    raise ValueError("Could not extract text from resume")
+
+# Job description
+job_description = """We are hiring a Lead Python Developer with experience in Python, AI, SQL, Cloud (AWS/GCP), and Data Analysis."""
+
+# Prompt
+prompt = f"""
+You are an AI resume screener.
+
+Job Description:
+{job_description}
+
+Resume Text:
+{resume_text}
+
+Give:
+- FIT Score (0-100)
+- Top 5 matching skills
+- Missing important skills
+- One line verdict
+"""
+
+# Generate response
+response = model.generate_content(prompt)
+
+# Output
+print("***** Resume Analysis *****")
+print(response.text)
