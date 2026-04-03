@@ -1,0 +1,134 @@
+# ==============================
+# STEP 1: Install Required Packages
+# ==============================
+
+# Uninstall existing langchain packages to ensure a clean slate
+#!pip uninstall -y langchain langchain-google-genai langchain-community langchain_core langchain-text-splitters
+
+# Reinstall all necessary packages with --force-reinstall for a clean slate
+
+!pip install -q langchain langchain-google-genai langchain-community python-dotenv pypdf docx2txt langchain-text-splitters langsmith
+
+# ============================================================
+# STEP 2: Imports
+# ============================================================
+import os
+from google.colab import files, userdata
+
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# ============================================================
+# STEP 3: API Keys (Gemini + LangSmith)
+# ============================================================
+
+# Gemini
+os.environ["GOOGLE_API_KEY"] = userdata.get("GOOGLE_API_KEY")
+
+# LangSmith
+os.environ["LANGCHAIN_API_KEY"] = userdata.get("LANGCHAIN_API_KEY")
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "resume-screener"
+
+# Optional (recommended)
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+
+# ============================================================
+# STEP 4: LLM Setup
+# ============================================================
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    temperature=0.7
+)
+
+# ============================================================
+# STEP 5: Prompt
+# ============================================================
+template = """
+You are an AI Resume Screener.
+
+Job Description:
+{job_description}
+
+Resume Text:
+{resume_text}
+
+Give:
+- FIT Score (0-100)
+- Top 5 matching skills
+- Missing Important Skills
+- One-line Verdict
+"""
+
+prompt = PromptTemplate(
+    template=template,
+    input_variables=["job_description", "resume_text"]
+)
+
+# ============================================================
+# STEP 6: Chain (LangSmith auto-tracks this)
+# ============================================================
+chain = prompt | llm | StrOutputParser()
+
+# ============================================================
+# STEP 7: Upload Resume
+# ============================================================
+print("Upload Resume (PDF/DOCX/TXT):")
+uploaded = files.upload()
+
+if not uploaded:
+    raise ValueError("No file uploaded.")
+
+resume_path = list(uploaded.keys())[0]
+
+# ============================================================
+# STEP 8: Load File
+# ============================================================
+if resume_path.lower().endswith(".pdf"):
+    loader = PyPDFLoader(resume_path)
+elif resume_path.lower().endswith(".docx"):
+    loader = Docx2txtLoader(resume_path)
+else:
+    loader = TextLoader(resume_path, encoding="utf-8")
+
+docs = loader.load()
+
+# ============================================================
+# STEP 9: Split Text
+# ============================================================
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50
+)
+
+chunks = splitter.split_documents(docs)
+
+resume_text = " ".join([c.page_content for c in chunks]).strip()
+
+if not resume_text:
+    raise ValueError("Text extraction failed.")
+
+# ============================================================
+# STEP 10: Job Description Input
+# ============================================================
+job_description = input("Enter Job Description:\n")
+
+# ============================================================
+# STEP 11: Run with LangSmith Trace
+# ============================================================
+result = chain.invoke(
+    {
+        "job_description": job_description,
+        "resume_text": resume_text
+    },
+    config={
+        "run_name": "resume-analysis",
+        "tags": ["resume", "screening", "gemini"]
+    }
+)
+
+print("\n==== RESULT ====\n")
+print(result)
