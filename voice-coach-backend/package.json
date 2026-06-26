@@ -1,0 +1,19 @@
+{
+  "name": "voice-coach-backend",
+  "version": "1.0.0",
+  "description": "Backend API for the Strategic Voice Coach — proxies the Anthropic Claude API.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

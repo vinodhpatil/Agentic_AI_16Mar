@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Strategic Voice Coach",
+    "slug": "strategic-voice-coach",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#07070d",
+    "splash": {
+      "backgroundColor": "#07070d",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.voicecoach.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Strategic Voice Coach uses your microphone so you can speak your responses during a coaching session.",
+        "NSSpeechRecognitionUsageDescription": "Strategic Voice Coach uses speech recognition to transcribe what you say to your coach."
+      }
+    },
+    "android": {
+      "package": "com.voicecoach.app",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Strategic Voice Coach uses your microphone so you can speak your responses during a coaching session.",
+          "speechRecognitionPermission": "Strategic Voice Coach uses speech recognition to transcribe what you say to your coach."
+        }
+      ]
+    ]
+  }
+}

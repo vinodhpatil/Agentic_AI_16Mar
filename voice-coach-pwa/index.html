@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#07070d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Voice Coach" />
+  <title>Strategic Voice Coach</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07070d;
+      --panel: rgba(255, 255, 255, 0.035);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --ink: #f4f3ef;
+      --ink-dim: #8b8b96;
+      --accent: #3ecfcf;
+      --foundation: #e8c547;
+      --growth: #3ecfcf;
+      --mastery: #7b5ea7;
+      --integration: #e85447;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 40px 40px;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .wrap { max-width: 520px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; padding: 18px 20px 28px; }
+
+    /* Header */
+    .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .brand { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-dim); }
+    .top-btns { display: flex; gap: 8px; }
+    .icon-btn {
+      background: var(--panel); border: 1px solid var(--panel-border); color: var(--ink);
+      width: 38px; height: 38px; border-radius: 11px; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: .2s;
+    }
+    .icon-btn:active { transform: scale(.92); }
+    .icon-btn.active { color: var(--accent); border-color: var(--accent); }
+
+    /* Week card */
+    .week-card {
+      background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px;
+      padding: 18px 20px; margin-bottom: 22px; position: relative; overflow: hidden; cursor: pointer;
+    }
+    .week-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+    .phase-tag { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+    .week-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin: 6px 0 4px; line-height: 1.1; }
+    .week-tag { font-size: 13px; color: var(--ink-dim); line-height: 1.4; }
+    .week-num { position: absolute; right: 16px; top: 10px; font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: var(--accent); opacity: .14; line-height: 1; }
+
+    /* Orb */
+    .orb-zone { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 8px 0 26px; }
+    .orb {
+      width: 168px; height: 168px; border-radius: 50%; cursor: pointer; position: relative;
+      display: flex; align-items: center; justify-content: center; border: none;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 60%), var(--accent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 12px 50px -12px var(--accent);
+      transition: box-shadow .4s, transform .2s;
+    }
+    .orb:active { transform: scale(.97); }
+    .orb-core { width: 54px; height: 54px; border-radius: 50%; background: rgba(7,7,13,0.55); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .orb.idle { animation: breathe 4s ease-in-out infinite; }
+    .orb.listening { animation: pulse 1.1s ease-in-out infinite; }
+    .orb.thinking { animation: spin 1.3s linear infinite; }
+    .orb.speaking { animation: glow 1.6s ease-in-out infinite; }
+    @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(62,207,207,0.5), 0 12px 50px -12px var(--accent); } 50% { box-shadow: 0 0 0 22px rgba(62,207,207,0), 0 12px 50px -12px var(--accent); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes glow { 0%,100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 0 40px -4px var(--accent); } 50% { box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 0 90px 6px var(--accent); } }
+    .orb-status { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-dim); min-height: 14px; }
+
+    /* Panels */
+    .panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; }
+    .panel-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 8px; }
+    .coach-text { font-size: 17px; line-height: 1.5; font-weight: 400; min-height: 24px; }
+    .transcript-text { font-size: 14px; line-height: 1.5; color: var(--ink-dim); min-height: 20px; font-style: italic; }
+
+    /* Text fallback row */
+    .text-row { display: none; gap: 8px; margin-bottom: 14px; }
+    .text-row.show { display: flex; }
+    .text-row input {
+      flex: 1; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px;
+      padding: 13px 15px; color: var(--ink); font-family: 'Outfit', sans-serif; font-size: 15px; outline: none;
+    }
+    .text-row input:focus { border-color: var(--accent); }
+    .send-btn { background: var(--accent); border: none; border-radius: 12px; color: #07070d; font-weight: 600; padding: 0 18px; cursor: pointer; font-size: 15px; }
+    .send-btn:active { transform: scale(.95); }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+    .stat { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 13px; padding: 12px 10px; text-align: center; }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-dim); margin-top: 3px; }
+
+    /* Modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(3,3,8,0.78); backdrop-filter: blur(6px); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
+    .modal-bg.show { display: flex; }
+    .modal { background: #0e0e16; border: 1px solid var(--panel-border); border-radius: 22px 22px 0 0; width: 100%; max-width: 520px; max-height: 82vh; overflow-y: auto; padding: 22px 20px 30px; }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+    .week-item { display: flex; align-items: center; gap: 14px; padding: 13px 12px; border-radius: 13px; cursor: pointer; border: 1px solid transparent; transition: .15s; }
+    .week-item:active, .week-item.current { background: var(--panel); border-color: var(--panel-border); }
+    .wi-num { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; width: 30px; text-align: center; }
+    .wi-body { flex: 1; }
+    .wi-title { font-size: 15px; font-weight: 500; }
+    .wi-phase { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+    .field-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-dim); margin: 4px 0 8px; display: block; }
+    .field-input { width: 100%; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 13px 15px; color: var(--ink); font-family: 'DM Mono', monospace; font-size: 14px; outline: none; }
+    .field-input:focus { border-color: var(--accent); }
+    .field-hint { font-size: 12px; color: var(--ink-dim); margin-top: 8px; line-height: 1.4; }
+    .save-btn { width: 100%; background: var(--accent); color: #07070d; border: none; border-radius: 12px; padding: 14px; font-weight: 600; font-size: 15px; margin-top: 18px; cursor: pointer; font-family: 'Outfit', sans-serif; }
+    .save-btn:active { transform: scale(.98); }
+    .toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); background: #16161f; border: 1px solid var(--panel-border); color: var(--ink); padding: 12px 20px; border-radius: 14px; font-size: 13px; z-index: 90; opacity: 0; transition: opacity .3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">Strategic&nbsp;Voice&nbsp;Coach</div>
+      <div class="top-btns">
+        <button class="icon-btn" id="muteBtn" title="Mute coach voice">🔊</button>
+        <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+      </div>
+    </div>
+
+    <div class="week-card" id="weekCard">
+      <div class="week-num" id="weekNum">1</div>
+      <div class="phase-tag" id="phaseTag">Foundation</div>
+      <div class="week-title" id="weekTitle">Leadership Identity</div>
+      <div class="week-tag" id="weekTag">Tap to choose your week</div>
+    </div>
+
+    <div class="orb-zone">
+      <button class="orb idle" id="orb"><div class="orb-core" id="orbCore">🎙</div></button>
+      <div class="orb-status" id="orbStatus">Tap to begin</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">Coach</div>
+      <div class="coach-text" id="coachText">Welcome. Tap the orb to start your session.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">You</div>
+      <div class="transcript-text" id="transcriptText">…</div>
+    </div>
+
+    <div class="text-row" id="textRow">
+      <input type="text" id="textInput" placeholder="Type your response…" autocomplete="off" />
+      <button class="send-btn" id="sendBtn">Send</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="statExchanges">0</div><div class="stat-label">Exchanges</div></div>
+      <div class="stat"><div class="stat-num" id="statWeek">1</div><div class="stat-label">Week</div></div>
+      <div class="stat"><div class="stat-num" id="statPhase" style="font-size:13px;">Found.</div><div class="stat-label">Phase</div></div>
+    </div>
+  </div>
+
+  <!-- Week picker modal -->
+  <div class="modal-bg" id="weekModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Choose a Week</div>
+        <button class="icon-btn" id="closeWeek">✕</button>
+      </div>
+      <div id="weekList"></div>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div class="modal-bg" id="settingsModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Settings</div>
+        <button class="icon-btn" id="closeSettings">✕</button>
+      </div>
+      <label class="field-label">Backend URL</label>
+      <input type="text" class="field-input" id="backendUrl" placeholder="https://your-backend.up.railway.app" />
+      <div class="field-hint">The deployed Strategic Voice Coach backend. Include https:// and no trailing slash.</div>
+      <button class="save-btn" id="saveSettings">Save</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    'use strict';
+
+    // ---- Domain data ----
+    const PHASE_COLORS = {
+      Foundation: '#e8c547', Growth: '#3ecfcf', Mastery: '#7b5ea7', Integration: '#e85447',
+    };
+    const WEEKS = [
+      { week: 1, title: 'Leadership Identity', phase: 'Foundation', tag: 'Audit your leadership identity; articulate a personal philosophy.' },
+      { week: 2, title: 'Mental Models Deep Dive', phase: 'Foundation', tag: 'First Principles, Inversion, Second-Order Thinking, Circle of Competence.' },
+      { week: 3, title: 'Vision Architecture', phase: 'Foundation', tag: 'Build a 3-horizon vision map; find your #1 constraint.' },
+      { week: 4, title: 'AI-First Operating Model', phase: 'Foundation', tag: 'Audit manual tasks; design your first AI agent workflow.' },
+      { week: 5, title: 'CARE: Structured Communication', phase: 'Growth', tag: 'Master CARE, PREP, and BLUF for high-signal communication.' },
+      { week: 6, title: 'Decision Architecture', phase: 'Growth', tag: 'Reversible vs irreversible decisions; criteria for recurring calls.' },
+      { week: 7, title: 'Systems & Leverage', phase: 'Growth', tag: 'Map systems; find where you are the bottleneck.' },
+      { week: 8, title: 'Resilience & Adaptability', phase: 'Growth', tag: 'Stress protocol; calm urgency; a 48-hour recovery framework.' },
+      { week: 9, title: 'Building High-Trust Teams', phase: 'Mastery', tag: 'Delegation, accelerating feedback, psychological safety.' },
+      { week: 10, title: 'Speed as Strategy', phase: 'Mastery', tag: "Sprint rhythm; compress cycles 40% with AI; Parkinson's Law." },
+      { week: 11, title: 'Data-Driven Leadership', phase: 'Mastery', tag: 'Define 5 metrics that matter; your personal dashboard.' },
+      { week: 12, title: 'Influence at Scale', phase: 'Mastery', tag: 'Thought leadership; the Three Stories narrative framework.' },
+      { week: 13, title: 'Scenario Planning', phase: 'Mastery', tag: 'Map best/base/worst futures; track signals; pre-make decisions.' },
+      { week: 14, title: 'Integration & Launch', phase: 'Integration', tag: 'Compile your Strategic Operating Manual + 90-day plan.' },
+    ];
+
+    // ---- Persistent state ----
+    const LS = {
+      week: 'vc_week', mute: 'vc_mute', backend: 'vc_backend',
+    };
+    let state = {
+      weekIndex: parseInt(localStorage.getItem(LS.week) || '0', 10) || 0,
+      muted: localStorage.getItem(LS.mute) === '1',
+      backend: (localStorage.getItem(LS.backend) || '').replace(/\/+$/, ''),
+      messages: [],
+      exchanges: 0,
+      busy: false,
+      started: false,
+    };
+
+    // ---- Elements ----
+    const $ = (id) => document.getElementById(id);
+    const orb = $('orb'), orbCore = $('orbCore'), orbStatus = $('orbStatus');
+    const coachText = $('coachText'), transcriptText = $('transcriptText');
+    const textRow = $('textRow'), textInput = $('textInput'), sendBtn = $('sendBtn');
+
+    // ---- Feature detection: SpeechRecognition (STT) ----
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const STT_SUPPORTED = !!SR;
+    let recognition = null;
+    if (STT_SUPPORTED) {
+      recognition = new SR();
+      recognition.lang = 'en-US';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+    } else {
+      // iOS Safari path: reveal the text input fallback.
+      textRow.classList.add('show');
+    }
+
+    // ---- TTS (works on iOS) ----
+    const synth = window.speechSynthesis;
+    function speak(text) {
+      if (state.muted || !synth) return;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.0; u.pitch = 1.0;
+      u.onstart = () => setOrb('speaking', 'Speaking');
+      u.onend = () => setOrb('idle', STT_SUPPORTED ? 'Tap to respond' : 'Type your response');
+      synth.speak(u);
+    }
+
+    // ---- Helpers ----
+    function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+    function toast(msg) {
+      const t = $('toast'); t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+    function setOrb(stateName, status) {
+      orb.className = 'orb ' + stateName;
+      orbStatus.textContent = status;
+      const icons = { idle: '🎙', listening: '👂', thinking: '✦', speaking: '🔊' };
+      orbCore.textContent = icons[stateName] || '🎙';
+    }
+    function applyAccent() {
+      const phase = WEEKS[state.weekIndex].phase;
+      document.documentElement.style.setProperty('--accent', PHASE_COLORS[phase]);
+    }
+
+    // ---- Render ----
+    function renderWeek() {
+      const w = WEEKS[state.weekIndex];
+      $('weekNum').textContent = w.week;
+      $('phaseTag').textContent = w.phase;
+      $('weekTitle').textContent = w.title;
+      $('weekTag').textContent = w.tag;
+      $('statWeek').textContent = w.week;
+      $('statPhase').textContent = w.phase.slice(0, 6) + (w.phase.length > 6 ? '.' : '');
+      applyAccent();
+    }
+    function renderStats() { $('statExchanges').textContent = state.exchanges; }
+
+    // ---- Networking ----
+    function backendOrWarn() {
+      if (!state.backend) {
+        toast('Set your backend URL in settings first.');
+        openSettings();
+        return null;
+      }
+      return state.backend;
+    }
+    async function startSession() {
+      const base = backendOrWarn(); if (!base) return;
+      if (state.busy) return;
+      state.busy = true; state.started = true; state.messages = []; state.exchanges = 0;
+      renderStats();
+      setOrb('thinking', 'Connecting');
+      coachText.textContent = '…';
+      try {
+        const r = await fetch(base + '/session/start', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weekIndex: state.weekIndex }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Failed to start session');
+        coachText.textContent = data.reply;
+        state.messages.push({ role: 'assistant', content: data.reply });
+        speak(data.reply);
+        if (!synth || state.muted) setOrb('idle', STT_SUPPORTED ? 'Tap to respond' : 'Type your response');
+      } catch (e) {
+        coachText.textContent = 'Could not reach the coach. Check your backend URL and connection.';
+        setOrb('idle', 'Tap to retry');
+        toast(e.message);
+      } finally { state.busy = false; }
+    }
+    async function sendMessage(userText) {
+      const base = backendOrWarn(); if (!base) return;
+      if (!userText || state.busy) return;
+      if (!state.started) { await startSession(); }
+      state.busy = true;
+      transcriptText.textContent = userText;
+      state.messages.push({ role: 'user', content: userText });
+      setOrb('thinking', 'Thinking');
+      coachText.textContent = '…';
+      try {
+        const r = await fetch(base + '/chat', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weekIndex: state.weekIndex, messages: state.messages }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Chat failed');
+        coachText.textContent = data.reply;
+        state.messages.push({ role: 'assistant', content: data.reply });
+        state.exchanges += 1; renderStats();
+        speak(data.reply);
+        if (!synth || state.muted) setOrb('idle', STT_SUPPORTED ? 'Tap to respond' : 'Type your response');
+      } catch (e) {
+        coachText.textContent = 'Something went wrong reaching the coach. Try again.';
+        setOrb('idle', 'Tap to retry');
+        toast(e.message);
+      } finally { state.busy = false; }
+    }
+
+    // ---- STT flow ----
+    let listening = false;
+    function startListening() {
+      if (!STT_SUPPORTED || listening) return;
+      try {
+        listening = true; setOrb('listening', 'Listening');
+        transcriptText.textContent = '…';
+        let finalText = '';
+        recognition.onresult = (ev) => {
+          let interim = '';
+          for (let i = ev.resultIndex; i < ev.results.length; i++) {
+            const t = ev.results[i][0].transcript;
+            if (ev.results[i].isFinal) finalText += t; else interim += t;
+          }
+          transcriptText.textContent = finalText || interim || '…';
+        };
+        recognition.onerror = () => { listening = false; setOrb('idle', 'Tap to respond'); };
+        recognition.onend = () => {
+          listening = false;
+          const said = transcriptText.textContent.trim();
+          if (said && said !== '…') sendMessage(said);
+          else setOrb('idle', 'Tap to respond');
+        };
+        recognition.start();
+      } catch (e) { listening = false; setOrb('idle', 'Tap to respond'); }
+    }
+
+    // ---- Orb tap (audio-unlock + main control) ----
+    orb.addEventListener('click', () => {
+      vibrate(12);
+      // Unlock audio autoplay on first user gesture (iOS).
+      if (synth && !state.muted) { try { synth.resume(); } catch (e) {} }
+      if (state.busy) return;
+      if (!state.started) { startSession(); return; }
+      if (STT_SUPPORTED) {
+        if (listening) { recognition.stop(); }
+        else { if (synth) synth.cancel(); startListening(); }
+      } else {
+        textInput.focus();
+      }
+    });
+
+    // ---- Text fallback send ----
+    function submitText() {
+      const v = textInput.value.trim();
+      if (!v) return;
+      textInput.value = '';
+      vibrate(12);
+      sendMessage(v);
+    }
+    sendBtn.addEventListener('click', submitText);
+    textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitText(); });
+
+    // ---- Mute ----
+    const muteBtn = $('muteBtn');
+    function renderMute() {
+      muteBtn.textContent = state.muted ? '🔇' : '🔊';
+      muteBtn.classList.toggle('active', !state.muted);
+    }
+    muteBtn.addEventListener('click', () => {
+      state.muted = !state.muted;
+      localStorage.setItem(LS.mute, state.muted ? '1' : '0');
+      if (state.muted && synth) synth.cancel();
+      renderMute();
+      vibrate(12);
+    });
+
+    // ---- Week modal ----
+    const weekModal = $('weekModal'), weekList = $('weekList');
+    function buildWeekList() {
+      weekList.innerHTML = '';
+      WEEKS.forEach((w, i) => {
+        const div = document.createElement('div');
+        div.className = 'week-item' + (i === state.weekIndex ? ' current' : '');
+        div.innerHTML = `
+          <div class="wi-num" style="color:${PHASE_COLORS[w.phase]}">${w.week}</div>
+          <div class="wi-body">
+            <div class="wi-title">${w.title}</div>
+            <div class="wi-phase" style="color:${PHASE_COLORS[w.phase]}">${w.phase}</div>
+          </div>`;
+        div.addEventListener('click', () => {
+          state.weekIndex = i;
+          localStorage.setItem(LS.week, String(i));
+          state.started = false; state.messages = []; state.exchanges = 0;
+          renderWeek(); renderStats();
+          coachText.textContent = 'Week set. Tap the orb to begin this session.';
+          transcriptText.textContent = '…';
+          setOrb('idle', 'Tap to begin');
+          closeModal(weekModal);
+          vibrate(12);
+        });
+        weekList.appendChild(div);
+      });
+    }
+    function openModal(m) { m.classList.add('show'); }
+    function closeModal(m) { m.classList.remove('show'); }
+    $('weekCard').addEventListener('click', () => { buildWeekList(); openModal(weekModal); });
+    $('closeWeek').addEventListener('click', () => closeModal(weekModal));
+    weekModal.addEventListener('click', (e) => { if (e.target === weekModal) closeModal(weekModal); });
+
+    // ---- Settings modal ----
+    const settingsModal = $('settingsModal'), backendInput = $('backendUrl');
+    function openSettings() { backendInput.value = state.backend; openModal(settingsModal); }
+    $('settingsBtn').addEventListener('click', openSettings);
+    $('closeSettings').addEventListener('click', () => closeModal(settingsModal));
+    settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeModal(settingsModal); });
+    $('saveSettings').addEventListener('click', () => {
+      state.backend = backendInput.value.trim().replace(/\/+$/, '');
+      localStorage.setItem(LS.backend, state.backend);
+      closeModal(settingsModal);
+      toast(state.backend ? 'Backend saved.' : 'Backend cleared.');
+      vibrate(12);
+    });
+
+    // ---- Init ----
+    function init() {
+      renderWeek(); renderStats(); renderMute();
+      setOrb('idle', 'Tap to begin');
+      if (!STT_SUPPORTED) {
+        orbStatus.textContent = 'Voice input not supported — type below';
+      }
+      // Register service worker.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    }
+    init();
+  </script>
+</body>
+</html>
